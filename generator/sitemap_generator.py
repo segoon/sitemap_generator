@@ -99,7 +99,7 @@ def pretty_print_xml(xml_file_path):
 
 
 def main():
-    url = "http://konstds.ru"
+    url = "http://ya.ru"
     # url = "http://crawler-test.com/"
     # url = "https://yandex.ru"
     start = timeit.default_timer()
