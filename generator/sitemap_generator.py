@@ -6,67 +6,70 @@ import requests
 import timeit
 import datetime
 from urllib.parse import urlparse, urljoin
-from collections import deque
 
 
-def is_valid(url):
-    parsed = urlparse(url)
-    return bool(parsed.netloc) and bool(parsed.scheme)
+class Crawler:
+    def __init__(self, url=""):
+        self.new_urls = [url]
+        self.processed_urls = []
+        self.local_urls = []
+        self.external_urls = []
+        self.broken_urls = []
 
+    def get_processed(self):
+        return self.processed_urls
 
-def crawl(url):
-    new_urls = deque([url])
-    processed_urls = set()
-    local_urls = set()
-    external_urls = set()
-    broken_urls = set()
-    # process urls one by one until we exhaust the queue
-    while len(new_urls):
-        # move next url from the queue to the set of processed urls
-        url = new_urls.popleft()
-        processed_urls.add(url)
-        # get url's content
-        print(f"Processing {url}")
-        try:
-            response = requests.get(url)
-        except Exception:
-            # add broken urls to it's own set, then continue
-            broken_urls.add(url)
-            print(f"Failed to crawl: {url}")
-            continue
-        # extract base url to resolve relative links
-        parts = urlparse(url)
-        base = parts.netloc
-        # create a beutiful soup for the html document
+    def get_local(self):
+        return self.local_urls
+
+    def get_external(self):
+        return self.external_urls
+
+    def get_broken(self):
+        return self.broken_urls
+
+    def is_valid(self, url):
+        parsed = urlparse(url)
+        return bool(parsed.netloc) and bool(parsed.scheme)
+
+    def run(self):
+        while self.new_urls:
+            url = self.new_urls.pop(0)
+            print(f"Processing: {url}")
+            try:
+                self.crawl(url)
+            except Exception:
+                self.broken_urls.append(url)
+                print(f"Failed: {url}")
+            finally:
+                self.processed_urls.append(url)
+
+    def crawl(self, url):
+        base = urlparse(url).netloc
+        response = requests.get(url)
         soup = BeautifulSoup(response.text, "lxml")
-        # print(soup)
-        for a_tag in soup.find_all('a'):
-            link = a_tag.attrs.get("href")
-            print(f"link = {link}")
-            if link == "" or link is None:
+        for a_tag in soup.find_all("a"):
+            link = a_tag.get("href")
+            if link and link.startswith("/"):
+                link = urljoin(url, link)
+            if not self.is_valid(link):
                 continue
-            link = urljoin(url, link)
-            parsed_link = urlparse(link)
-            link = parsed_link.scheme + "://" + parsed_link.netloc + parsed_link.path
-            if not is_valid(link):
-                continue
-            if link in local_urls:
+            if link in self.local_urls:
                 # already in the set
                 continue
             if base not in link:
                 # external link
-                if link not in external_urls:
-                    external_urls.add(link)
+                if link not in self.external_urls:
+                    self.external_urls.append(link)
                 continue
-            local_urls.add(link)
-            if link not in (new_urls, processed_urls):
-                new_urls.append(link)
-    return (processed_urls, local_urls, external_urls, broken_urls)
+            self.local_urls.append(link)
+            if link not in self.new_urls and link not in self.processed_urls:
+                self.new_urls.append(link)
 
 
 def creating_sitemap(urls, domain_name, processing_time):
-    print('Creating sitemap...')
-    root = ET.Element('urlset')
+    print("Creating sitemap...")
+    root = ET.Element("urlset")
     root.attrib['xmlns:xsi'] = "http://www.w3.org/2001/XMLSchema-instance"
     root.attrib['xsi:schemaLocation'] = "http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
     root.attrib['xmlns'] = "http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -92,7 +95,7 @@ def pretty_print_xml(xml_file_path):
     parser = etree.XMLParser(resolve_entities=False, strip_cdata=False)
     document = etree.parse(xml_file_path, parser)
     document.write(xml_file_path, pretty_print=True,
-                   xml_declaration=True, encoding='utf-8')
+                   xml_declaration=True, encoding="utf-8")
 
 
 def main():
@@ -100,21 +103,13 @@ def main():
     # url = "http://crawler-test.com/"
     # url = "https://yandex.ru"
     start = timeit.default_timer()
-    processed_urls, local_urls, external_urls, broken_urls = crawl(url)
+    crawler = Crawler(url)
+    crawler.run()
+    local_urls = crawler.get_local()
     processing_time = timeit.default_timer() - start
     print(f"Processing time: {processing_time}\n")
-    # print(
-    #     f"processed_urls {len(processed_urls)}:\n"
-    #     f"processed_urls = {processed_urls}\n"
-    #     f"local_urls {len(local_urls)}:\n"
-    #     f"local_urls = {local_urls}:\n"
-    #     f"external_urls {len(external_urls)}:\n"
-    #     f"external_urls = {external_urls}\n"
-    #     f"broken_urls {len(broken_urls):}\n"
-    #     f"broken_urls = {broken_urls}\n")
 
     domain_name = urlparse(url).netloc
-
     creating_sitemap(local_urls, domain_name, processing_time)
     pretty_print_xml(f"./sitemaps/sitemap_{domain_name}.xml")
 
