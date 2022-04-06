@@ -85,9 +85,9 @@ def creating_sitemap(urls, domain_name, processing_time):
         ET.SubElement(doc, "priority").text = "1.0"
 
     tree = ET.ElementTree(root)
-    tree.write(f"./sitemaps/sitemap_{domain_name}.xml",
+    tree.write(f"./ready_sitemaps/sitemap_{domain_name}.xml",
                encoding='utf-8', xml_declaration=True)
-    print("Sitemap ready in './sitemaps'")
+    print("Sitemap ready in './ready_sitemaps'")
 
 
 def pretty_print_xml(xml_file_path):
@@ -111,7 +111,7 @@ def main():
 
     domain_name = urlparse(url).netloc
     creating_sitemap(local_urls, domain_name, processing_time)
-    pretty_print_xml(f"./sitemaps/sitemap_{domain_name}.xml")
+    pretty_print_xml(f"./ready_sitemaps/sitemap_{domain_name}.xml")
 
 
 if __name__ == '__main__':
