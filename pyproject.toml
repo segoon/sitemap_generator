@@ -24,3 +24,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 generator = "generator.sitemap_generator:main"
+generator_async = "generator.sitemap_generator_async:main"

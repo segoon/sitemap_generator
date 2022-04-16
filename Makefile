@@ -6,3 +6,6 @@ lint:
 
 generate:
 	poetry run generator
+
+async_generate:
+	poetry run generator_async
