@@ -33,7 +33,7 @@ class Crawler:
         parsed = urlparse(url)
         return bool(parsed.netloc) and bool(parsed.scheme)
 
-    def get_responce(url):
+    def get_responce(self, url):
         return requests.get(url)
 
     def run(self):
@@ -42,9 +42,10 @@ class Crawler:
             print(f"Processing: {url}")
             try:
                 self.crawl(url)
-            except Exception:
+            except Exception as e:
                 self.broken_urls.append(url)
                 print(f"Failed: {url}")
+                print(f"Error: {e}")
             finally:
                 self.processed_urls.append(url)
 
@@ -73,8 +74,8 @@ class Crawler:
 
 def main():
     # url = "http://ya.ru"
-    url = "http://crawler-test.com/"
-
+    # url = "http://crawler-test.com/"
+    url = "http://konstds.ru"
     start = timeit.default_timer()
     crawler = Crawler(url)
     crawler.run()

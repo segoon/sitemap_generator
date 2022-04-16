@@ -86,9 +86,9 @@ def main():
     processing_time = timeit.default_timer() - start
     print(f"Processing time: {processing_time}\n")
 
-    domain_name = urlparse(url).netloc
+    domain_name = f"{urlparse(url).netloc}_async"
     creating_sitemap(local_urls, domain_name, processing_time)
-    pretty_print_xml(f"./ready_sitemaps/sitemap_{domain_name}_async.xml")
+    pretty_print_xml(f"./ready_sitemaps/sitemap_{domain_name}.xml")
 
 
 if __name__ == '__main__':
