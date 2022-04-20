@@ -6,6 +6,7 @@ import asyncio
 import aiohttp
 from generator.xml_creater import creating_sitemap
 from generator.xml_creater import pretty_print_xml
+from generator.drawing_graph import draw
 
 
 class Crawler:
@@ -15,6 +16,7 @@ class Crawler:
         self.local_urls = []
         self.external_urls = []
         self.broken_urls = []
+        self.graph = {}
 
     def get_processed(self):
         return self.processed_urls
@@ -27,6 +29,9 @@ class Crawler:
 
     def get_broken(self):
         return self.broken_urls
+
+    def get_graph(self):
+        return self.graph
 
     def is_valid(self, url):
         parsed = urlparse(url)
@@ -52,6 +57,7 @@ class Crawler:
                     self.processed_urls.append(url)
 
     async def crawl(self, session, url):
+        self.graph[url] = []
         base = urlparse(url).netloc
         response = await self.get_responce(session, url)
         soup = BeautifulSoup(response, "lxml")
@@ -60,7 +66,11 @@ class Crawler:
             if link and link.startswith("/"):
                 link = urljoin(url, link)
             if not self.is_valid(link):
+                # print(f"is not valid: {link}")
                 continue
+            u = urlparse(link)
+            link = u._replace(scheme='https', params='',
+                              query='', fragment='').geturl()
             if link in self.local_urls:
                 # already in the set
                 continue
@@ -70,25 +80,28 @@ class Crawler:
                     self.external_urls.append(link)
                 continue
             self.local_urls.append(link)
+            self.graph[url].append(link)
             if link not in self.new_urls and link not in self.processed_urls:
                 self.new_urls.append(link)
 
 
 def main():
-    # url = "http://ya.ru"
-    url = "http://konstds.ru"
     # url = "http://crawler-test.com/"
-    # url = "https://yandex.ru"
+    url = "https://privetmir.ru/"
+
     start = timeit.default_timer()
     crawler = Crawler(url)
     asyncio.run(crawler.run())
     local_urls = crawler.get_local()
     processing_time = timeit.default_timer() - start
     print(f"Processing time: {processing_time}\n")
+    local_urls_graph = crawler.get_graph()
 
     domain_name = f"{urlparse(url).netloc}_async"
     creating_sitemap(local_urls, domain_name, processing_time)
     pretty_print_xml(f"./ready_sitemaps/sitemap_{domain_name}.xml")
+
+    draw(local_urls_graph, domain_name)
 
 
 if __name__ == '__main__':
