@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-from bs4 import BeautifulSoup
-import requests
 import timeit
-from urllib.parse import urlparse, urljoin
-from generator.xml_creater import creating_sitemap
-from generator.xml_creater import pretty_print_xml
+from urllib.parse import urljoin, urlparse
+
+import requests
+from bs4 import BeautifulSoup
 from generator.drawing_graph import draw
+from generator.xml_creater import creating_sitemap, pretty_print_xml
 
 
 class Crawler:
@@ -54,7 +54,9 @@ class Crawler:
 
     def crawl(self, url):
         self.graph[url] = []
-        base = urlparse(url).netloc
+        url_parsed = urlparse(url)
+        base = url_parsed.netloc
+        root_scheme = url_parsed.scheme
         response = self.get_responce(url)
         soup = BeautifulSoup(response.text, "lxml")
         for a_tag in soup.find_all("a"):
@@ -64,9 +66,9 @@ class Crawler:
             if not self.is_valid(link):
                 continue
             u = urlparse(link)
-            link = u._replace(scheme='https', params='',
+            link = u._replace(scheme=root_scheme, params='',
                               query='', fragment='').geturl()
-            if link in self.local_urls:
+            if link in self.local_urls or link == url:
                 # already in the set
                 continue
             if base not in link:

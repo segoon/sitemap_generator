@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-from bs4 import BeautifulSoup
-import timeit
-from urllib.parse import urlparse, urljoin
 import asyncio
+import timeit
+from urllib.parse import urljoin, urlparse
+
 import aiohttp
-from generator.xml_creater import creating_sitemap
-from generator.xml_creater import pretty_print_xml
+from bs4 import BeautifulSoup
 from generator.drawing_graph import draw
+from generator.xml_creater import creating_sitemap, pretty_print_xml
 
 
 class Crawler:
@@ -58,7 +58,9 @@ class Crawler:
 
     async def crawl(self, session, url):
         self.graph[url] = []
-        base = urlparse(url).netloc
+        url_parsed = urlparse(url)
+        base = url_parsed.netloc
+        root_scheme = url_parsed.scheme
         response = await self.get_responce(session, url)
         soup = BeautifulSoup(response, "lxml")
         for a_tag in soup.find_all("a"):
@@ -66,12 +68,11 @@ class Crawler:
             if link and link.startswith("/"):
                 link = urljoin(url, link)
             if not self.is_valid(link):
-                # print(f"is not valid: {link}")
                 continue
             u = urlparse(link)
-            link = u._replace(scheme='https', params='',
+            link = u._replace(scheme=root_scheme, params='',
                               query='', fragment='').geturl()
-            if link in self.local_urls:
+            if link in self.local_urls or link == url:
                 # already in the set
                 continue
             if base not in link:
@@ -87,7 +88,7 @@ class Crawler:
 
 def main():
     # url = "http://crawler-test.com/"
-    url = "https://privetmir.ru/"
+    url = "https://privetmir.ru"
 
     start = timeit.default_timer()
     crawler = Crawler(url)
