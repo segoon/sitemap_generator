@@ -1,3 +1,4 @@
+[![Linter flake8](https://github.com/konstdimasik/sitemap_generator/actions/workflows/lint.yml/badge.svg)](https://github.com/konstdimasik/sitemap_generator/actions/workflows/lint.yml)
 Simple sitemap.xml generator
 
 ## Install
