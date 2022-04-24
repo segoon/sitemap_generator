@@ -50,10 +50,10 @@ class Crawler:
                 try:
                     task = asyncio.create_task(self.crawl(session, url))
                     await task
-                except Exception as e:
+                except Exception as err:
                     self.broken_urls.append(url)
                     print(f"Failed: {url}")
-                    print(f"Error: {e}")
+                    print(f"Error: {err}")
                 finally:
                     self.processed_urls.append(url)
 
@@ -92,8 +92,6 @@ class Crawler:
 
 
 def main(args=sys.argv):
-    # url = "http://crawler-test.com/"
-    # url = "https://privetmir.ru"
     url = args[1]
     start = timeit.default_timer()
     crawler = Crawler(url)
