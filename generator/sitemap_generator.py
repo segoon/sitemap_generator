@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import timeit
 from urllib.parse import urljoin, urlparse
 
@@ -45,10 +46,10 @@ class Crawler:
             print(f"Processing: {url}")
             try:
                 self.crawl(url)
-            except Exception as e:
+            except Exception as err:
                 self.broken_urls.append(url)
                 print(f"Failed: {url}")
-                print(f"Error: {e}")
+                print(f"Error: {err}")
             finally:
                 self.processed_urls.append(url)
 
@@ -65,9 +66,13 @@ class Crawler:
                 link = urljoin(url, link)
             if not self.is_valid(link):
                 continue
-            u = urlparse(link)
-            link = u._replace(scheme=root_scheme, params='',
-                              query='', fragment='').geturl()
+            tmp_link = urlparse(link)
+            link = tmp_link._replace(
+                scheme=root_scheme,
+                params='',
+                query='',
+                fragment='',
+            ).geturl()
             if link in self.local_urls or link == url:
                 # already in the set
                 continue
@@ -82,10 +87,8 @@ class Crawler:
                 self.new_urls.append(link)
 
 
-def main():
-    # url = "http://crawler-test.com/"
-    url = "https://privetmir.ru"
-
+def main(args=sys.argv):
+    url = args[1]
     start = timeit.default_timer()
     crawler = Crawler(url)
     crawler.run()

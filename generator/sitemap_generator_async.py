@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import asyncio
+import sys
 import timeit
 from urllib.parse import urljoin, urlparse
 
@@ -69,9 +70,13 @@ class Crawler:
                 link = urljoin(url, link)
             if not self.is_valid(link):
                 continue
-            u = urlparse(link)
-            link = u._replace(scheme=root_scheme, params='',
-                              query='', fragment='').geturl()
+            tmp_link = urlparse(link)
+            link = tmp_link._replace(
+                scheme=root_scheme,
+                params='',
+                query='',
+                fragment='',
+            ).geturl()
             if link in self.local_urls or link == url:
                 # already in the set
                 continue
@@ -86,10 +91,10 @@ class Crawler:
                 self.new_urls.append(link)
 
 
-def main():
+def main(args=sys.argv):
     # url = "http://crawler-test.com/"
-    url = "https://privetmir.ru"
-
+    # url = "https://privetmir.ru"
+    url = args[1]
     start = timeit.default_timer()
     crawler = Crawler(url)
     asyncio.run(crawler.run())
