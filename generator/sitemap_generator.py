@@ -13,7 +13,7 @@ class Crawler:
     def __init__(self, url=""):
         self.new_urls = [url]
         self.processed_urls = []
-        self.local_urls = []
+        self.local_urls = [url]
         self.external_urls = []
         self.broken_urls = []
         self.graph = {}
