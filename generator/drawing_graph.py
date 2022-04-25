@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 def draw(local_urls, domain_name):
     """
-    Get local_urls and draw links betwheen pages.
+    Get local_urls and draw links between pages.
 
     Args:
         local_urls(dict): diction with pages and links in it.
