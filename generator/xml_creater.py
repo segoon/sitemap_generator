@@ -2,7 +2,17 @@
 import datetime
 import xml.etree.cElementTree as Et
 
+from loguru import logger
 from lxml import etree
+
+
+logger.add(
+    "debug.log",
+    format="{time} {level} {message}",
+    level="DEBUG",
+    rotation="100KB",
+    compression="zip",
+)
 
 
 def creating_sitemap(urls, domain_name, processing_time):
@@ -14,7 +24,7 @@ def creating_sitemap(urls, domain_name, processing_time):
         domain_name(str): name of root url.
         processing_time(int): the time of the crawler operation
     """
-    print("Creating sitemap...")
+    logger.info("Creating sitemap...")
     root = Et.Element("urlset")
     root.attrib['xmlns:xsi'] = "http://www.w3.org/2001/XMLSchema-instance"
     root.attrib['xsi:schemaLocation'] = "http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
@@ -37,7 +47,7 @@ def creating_sitemap(urls, domain_name, processing_time):
         encoding='utf-8',
         xml_declaration=True,
     )
-    print("Sitemap ready in './ready_sitemaps'")
+    logger.info("Sitemap ready in './ready_sitemaps'")
 
 
 def pretty_print_xml(xml_file_path):
