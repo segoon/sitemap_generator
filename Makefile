@@ -7,5 +7,5 @@ lint:
 generate:
 	poetry run generator $(URL)
 
-async_generate:
+generate_async:
 	poetry run generator_async $(URL)

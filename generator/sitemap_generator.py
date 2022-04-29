@@ -9,6 +9,14 @@ from generator.drawing_graph import draw
 from generator.xml_creater import creating_sitemap, pretty_print_xml
 from loguru import logger
 
+logger.add(
+    "debug.log",
+    format="{time} {level} {message}",
+    level="DEBUG",
+    rotation="100KB",
+    compression="zip",
+)
+
 
 class Crawler:
     def __init__(self, url=""):
@@ -89,8 +97,7 @@ class Crawler:
 
 
 def main(args=sys.argv):
-    # url = args[1]
-    url = "http://docs.python.org/"
+    url = args[1]
     start = timeit.default_timer()
     crawler = Crawler(url)
     crawler.run()

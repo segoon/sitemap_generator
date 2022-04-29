@@ -1,6 +1,6 @@
 """Drawing module."""
-from loguru import logger
 import networkx as nx
+from loguru import logger
 from matplotlib import pyplot as plt
 
 

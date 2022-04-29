@@ -6,15 +6,6 @@ from loguru import logger
 from lxml import etree
 
 
-logger.add(
-    "debug.log",
-    format="{time} {level} {message}",
-    level="DEBUG",
-    rotation="100KB",
-    compression="zip",
-)
-
-
 def creating_sitemap(urls, domain_name, processing_time):
     """
     Make xml sitemap file.

@@ -8,6 +8,15 @@ import aiohttp
 from bs4 import BeautifulSoup
 from generator.drawing_graph import draw
 from generator.xml_creater import creating_sitemap, pretty_print_xml
+from loguru import logger
+
+logger.add(
+    "debug_async.log",
+    format="{time} {level} {message}",
+    level="DEBUG",
+    rotation="100KB",
+    compression="zip",
+)
 
 
 class Crawler:
@@ -46,14 +55,14 @@ class Crawler:
         async with aiohttp.ClientSession() as session:
             while self.new_urls:
                 url = self.new_urls.pop(0)
-                print(f"Processing: {url}")
+                logger.info(f"Processing: {url}")
                 try:
                     task = asyncio.create_task(self.crawl(session, url))
                     await task
                 except Exception as err:
                     self.broken_urls.append(url)
-                    print(f"Failed: {url}")
-                    print(f"Error: {err}")
+                    logger.warning(f"Failed: {url}")
+                    logger.error(f"Error: {err}")
                 finally:
                     self.processed_urls.append(url)
 
@@ -98,7 +107,7 @@ def main(args=sys.argv):
     asyncio.run(crawler.run())
     local_urls = crawler.get_local()
     processing_time = timeit.default_timer() - start
-    print(f"Processing time: {processing_time}\n")
+    logger.info(f"Processing time: {processing_time}\n")
     local_urls_graph = crawler.get_graph()
 
     domain_name = f"{urlparse(url).netloc}_async"
