@@ -1,12 +1,13 @@
 """XML creating module."""
 import datetime
 import xml.etree.cElementTree as Et
+from typing import List
 
 from loguru import logger
 from lxml import etree
 
 
-def creating_sitemap(urls, domain_name, processing_time):
+def creating_sitemap(urls: List[str], domain_name: str, processing_time: float) -> None:
     """
     Make xml sitemap file.
 
@@ -41,7 +42,7 @@ def creating_sitemap(urls, domain_name, processing_time):
     logger.info("Sitemap ready in './ready_sitemaps'")
 
 
-def pretty_print_xml(xml_file_path):
+def pretty_print_xml(xml_file_path: str) -> None:
     """
     Make xml prettier.
 

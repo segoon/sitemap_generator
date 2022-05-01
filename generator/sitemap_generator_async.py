@@ -2,6 +2,7 @@
 import asyncio
 import sys
 import timeit
+from typing import Dict, List
 from urllib.parse import urljoin, urlparse
 
 import aiohttp
@@ -20,38 +21,38 @@ logger.add(
 
 
 class Crawler:
-    def __init__(self, url=""):
-        self.new_urls = [url]
-        self.processed_urls = []
-        self.local_urls = [url]
-        self.external_urls = []
-        self.broken_urls = []
-        self.graph = {}
+    def __init__(self, url: str = "") -> None:
+        self.new_urls: List[str] = [url]
+        self.processed_urls: List[str] = []
+        self.local_urls: List[str] = [url]
+        self.external_urls: List[str] = []
+        self.broken_urls: List[str] = []
+        self.graph: Dict[str, List[str]] = {}
 
-    def get_processed(self):
+    def get_processed(self) -> List[str]:
         return self.processed_urls
 
-    def get_local(self):
+    def get_local(self) -> List[str]:
         return self.local_urls
 
-    def get_external(self):
+    def get_external(self) -> List[str]:
         return self.external_urls
 
-    def get_broken(self):
+    def get_broken(self) -> List[str]:
         return self.broken_urls
 
-    def get_graph(self):
+    def get_graph(self) -> Dict[str, List[str]]:
         return self.graph
 
-    def is_valid(self, url):
+    def is_valid(self, url: str) -> bool:
         parsed = urlparse(url)
         return bool(parsed.netloc) and bool(parsed.scheme)
 
-    async def get_responce(self, session, url):
+    async def get_responce(self, session: 'aiohttp.client.ClientSession', url: str) -> str:
         async with session.get(url) as response:
             return await response.text()
 
-    async def run(self):
+    async def run(self) -> None:
         async with aiohttp.ClientSession() as session:
             while self.new_urls:
                 url = self.new_urls.pop(0)
@@ -66,7 +67,7 @@ class Crawler:
                 finally:
                     self.processed_urls.append(url)
 
-    async def crawl(self, session, url):
+    async def crawl(self, session: 'aiohttp.client.ClientSession', url: str) -> None:
         self.graph[url] = []
         url_parsed = urlparse(url)
         base = url_parsed.netloc
@@ -100,14 +101,14 @@ class Crawler:
                 self.new_urls.append(link)
 
 
-def main(args=sys.argv):
+def main(args: List[str] = sys.argv):
     url = args[1]
     start = timeit.default_timer()
     crawler = Crawler(url)
     asyncio.run(crawler.run())
     local_urls = crawler.get_local()
     processing_time = timeit.default_timer() - start
-    logger.info(f"Processing time: {processing_time}\n")
+    logger.info(f"Processing time: {processing_time}")
     local_urls_graph = crawler.get_graph()
 
     domain_name = f"{urlparse(url).netloc}_async"

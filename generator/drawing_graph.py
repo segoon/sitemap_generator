@@ -1,10 +1,12 @@
 """Drawing module."""
+from typing import List
+
 import networkx as nx
 from loguru import logger
 from matplotlib import pyplot as plt
 
 
-def draw(local_urls, domain_name):
+def draw(local_urls: List[str], domain_name: str) -> None:
     """
     Get local_urls and draw links between pages.
 
@@ -32,4 +34,4 @@ def draw(local_urls, domain_name):
     ax.margins(0.2)
     plt.axis("off")
     plt.savefig(f"./ready_site_graph/graph_{domain_name}.png", dpi=500)
-    logger.info(f"{domain_name} graph ready in './ready_site_graph'")
+    logger.info(f"{domain_name} graph ready in './ready_site_graph\n'")
