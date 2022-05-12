@@ -1,17 +1,18 @@
 #!/usr/bin/env python
+import asyncio
 import sys
 import timeit
 from typing import Dict, List
 from urllib.parse import urljoin, urlparse
 
-import requests
+import aiohttp
 from bs4 import BeautifulSoup
 from generator.drawing_graph import draw
 from generator.xml_creater import creating_sitemap, pretty_print_xml
 from loguru import logger
 
 logger.add(
-    "debug.log",
+    "debug_async.log",
     format="{time} {level} {message}",
     level="DEBUG",
     rotation="100KB",
@@ -47,29 +48,32 @@ class Crawler:
         parsed = urlparse(url)
         return bool(parsed.netloc) and bool(parsed.scheme)
 
-    def get_responce(self, url: str) -> "requests.models.Response":
-        return requests.get(url)
+    async def get_responce(self, session: 'aiohttp.client.ClientSession', url: str) -> str:
+        async with session.get(url) as response:
+            return await response.text()
 
-    def run(self) -> None:
-        while self.new_urls:
-            url = self.new_urls.pop(0)
-            logger.info(f"Processing: {url}")
-            try:
-                self.crawl(url)
-            except Exception as err:
-                self.broken_urls.append(url)
-                logger.warning(f"Failed: {url}")
-                logger.error(f"Error: {err}")
-            finally:
-                self.processed_urls.append(url)
+    async def run(self) -> None:
+        async with aiohttp.ClientSession() as session:
+            while self.new_urls:
+                url = self.new_urls.pop(0)
+                logger.info(f"Processing: {url}")
+                try:
+                    task = asyncio.create_task(self.crawl(session, url))
+                    await task
+                except Exception as err:
+                    self.broken_urls.append(url)
+                    logger.warning(f"Failed: {url}")
+                    logger.error(f"Error: {err}")
+                finally:
+                    self.processed_urls.append(url)
 
-    def crawl(self, url: str) -> None:
+    async def crawl(self, session: 'aiohttp.client.ClientSession', url: str) -> None:
         self.graph[url] = []
         url_parsed = urlparse(url)
         base = url_parsed.netloc
         root_scheme = url_parsed.scheme
-        response = self.get_responce(url)
-        soup = BeautifulSoup(response.text, "lxml")
+        response = await self.get_responce(session, url)
+        soup = BeautifulSoup(response, "lxml")
         for a_tag in soup.find_all("a"):
             link = a_tag.get("href")
             if link and link.startswith("/"):
@@ -101,13 +105,13 @@ def main(args: List[str] = sys.argv):
     url = args[1]
     start = timeit.default_timer()
     crawler = Crawler(url)
-    crawler.run()
+    asyncio.run(crawler.run())
     local_urls = crawler.get_local()
     processing_time = timeit.default_timer() - start
     logger.info(f"Processing time: {processing_time}")
     local_urls_graph = crawler.get_graph()
 
-    domain_name = urlparse(url).netloc
+    domain_name = f"{urlparse(url).netloc}_async"
     creating_sitemap(local_urls, domain_name, processing_time)
     pretty_print_xml(f"./ready_sitemaps/sitemap_{domain_name}.xml")
 
